@@ -1,0 +1,37 @@
+========================================
+  J.A.R.V.I.S  -  WEB APP  -  HOW TO RUN
+========================================
+
+KEEP THIS FOLDER STRUCTURE INTACT:
+  jarvis_web/
+    app.py                  <- the Python brain (run this)
+    templates/
+      index.html            <- the HUD face (Flask needs it HERE)
+
+----------------------------------------
+STEP 1 - install the libraries (once):
+    pip install flask psutil pyautogui ollama pycaw comtypes pywhatkit
+
+STEP 2 - make sure Ollama is installed and the model is pulled:
+    ollama pull llama3.2:1b
+
+STEP 3 - open Command Prompt, go into this folder:
+    cd path\to\jarvis_web
+   (example:  cd C:\Users\Administrator\Desktop\jarvis_web )
+
+STEP 4 - run it:
+    python app.py
+
+   It prints:  http://127.0.0.1:5000  and opens your browser automatically.
+
+STEP 5 - in the browser, click "ENGAGE", allow microphone, and talk.
+   - The HUD listens to your voice (browser speech-to-text)
+   - Sends commands to Python (which opens apps, changes volume, etc.)
+   - JARVIS speaks the reply and the bars react to both voices
+
+----------------------------------------
+NOTES:
+  - The browser does the listening + speaking; Python does the laptop actions.
+  - For the best British voice, Chrome/Edge usually have "Google UK English Male".
+  - Single Chrome TAB closing is still not possible (OS limit) - whole apps/browser work.
+  - To stop: close the terminal or press Ctrl+C in it.

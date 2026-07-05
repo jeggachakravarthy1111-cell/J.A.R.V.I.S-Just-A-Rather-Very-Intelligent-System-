@@ -1,0 +1,9 @@
+# J.A.R.V.I.S Web App - Python dependencies
+# Install with:  pip install -r requirements.txt
+flask
+psutil
+pyautogui
+ollama
+pycaw
+comtypes
+pywhatkit

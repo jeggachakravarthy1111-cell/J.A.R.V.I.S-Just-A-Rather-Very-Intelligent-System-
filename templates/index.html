@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J.A.R.V.I.S</title>
+<style>
+  html,body{margin:0;height:100%;background:#02060d;overflow:hidden;}
+  #wrap{position:relative;width:100vw;height:100vh;font-family:'Consolas','Courier New',monospace;}
+  canvas{display:block;width:100%;height:100%;}
+  .lbl{position:absolute;letter-spacing:2px;}
+  #title{top:20px;left:26px;color:#37d6ff;font-size:26px;letter-spacing:5px;font-weight:bold;}
+  #clk{top:24px;right:26px;color:#37d6ff;font-size:20px;font-weight:bold;}
+  #tag{bottom:18px;left:26px;color:#1c7fa0;font-size:13px;letter-spacing:3px;}
+  #status{bottom:18px;right:26px;color:#37d6ff;font-size:16px;font-weight:bold;}
+  #stats{top:90px;left:26px;width:300px;color:#2aa9cf;font-size:18px;font-weight:bold;}
+  #stats > div{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  #stats span{color:#37d6ff;font-size:20px;}
+  #convo{position:absolute;top:90px;right:26px;width:300px;text-align:right;color:#2aa9cf;font-size:16px;line-height:1.7;}
+  #you{color:#7CFFB0;margin-bottom:8px;min-height:16px;}
+  #jarvis{color:#37d6ff;min-height:16px;}
+  #mic{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
+    background:rgba(8,40,58,0.6);border:1px solid #1d8bb0;color:#37d6ff;
+    font-family:inherit;font-size:13px;letter-spacing:3px;padding:11px 30px;
+    border-radius:24px;cursor:pointer;}
+  #mic:hover{background:rgba(12,55,78,0.8);}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="jhud"></canvas>
+  <div class="lbl" id="title">J.A.R.V.I.S</div>
+  <div class="lbl" id="clk">--:--:--</div>
+  <div class="lbl" id="tag">JUST A RATHER VERY INTELLIGENT SYSTEM</div>
+  <div class="lbl" id="status">● STANDBY</div>
+  <div class="lbl" id="stats">
+    <div><span>CPU LOAD</span><span id="cpu">--%</span></div>
+    <div><span>MEMORY</span><span id="mem">--%</span></div>
+    <div><span>POWER</span><span id="pwr">--%</span></div>
+    <div><span>NETWORK</span><span>OK</span></div>
+    <div><span>UPLINK</span><span>SECURE</span></div>
+  </div>
+  <div class="lbl" id="volbox" style="top:430px;left:26px;width:300px;color:#2aa9cf;font-size:18px;font-weight:bold;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span>VOLUME</span><span id="volnum" style="color:#37d6ff;font-size:24px;">--%</span>
+    </div>
+  </div>
+  <div class="lbl" id="convo">
+    <div id="you"></div>
+    <div id="jarvis"></div>
+  </div>
+  <button id="mic" aria-label="engage microphone">▶ ENGAGE</button>
+</div>
+<script>
+(function(){
+  const cv=document.getElementById('jhud'),ctx=cv.getContext('2d');
+  let W,H,cx,cy;
+  function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;cx=W/2;cy=H/2;}
+  window.addEventListener('resize',resize);resize();
+  let t=0,active=false,level=0,jarvisSpeaking=false,volPct=0,volShown=0;
+  const bars=72,bl=new Array(bars).fill(0.1);
+  function ring(r,w,c,a,dash,rot,seg){
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(rot);ctx.beginPath();
+    if(seg){for(let i=0;i<seg;i++){const a0=(i/seg)*Math.PI*2,a1=a0+(Math.PI*2/seg)*0.6;
+      ctx.moveTo(Math.cos(a0)*r,Math.sin(a0)*r);ctx.arc(0,0,r,a0,a1);}}
+    else ctx.arc(0,0,r,0,Math.PI*2);
+    ctx.strokeStyle=c;ctx.globalAlpha=a;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.stroke();ctx.restore();
+  }
+  function tick(){
+    t+=0.016;ctx.clearRect(0,0,W,H);
+    ctx.globalAlpha=0.05;ctx.strokeStyle='#0e4a63';ctx.lineWidth=1;
+    for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    ctx.globalAlpha=1;
+    const idle=0.08+Math.sin(t*1.5)*0.03;
+    const target=(active||jarvisSpeaking)?Math.max(level,jarvisSpeaking?0.5:0):idle;
+    level+=(target-level)*0.15;
+    ring(190,1,'#0f5f7d',0.5,[4,8],t*0.3,0);
+    ring(168,2,'#1d8bb0',0.6,null,-t*0.5,24);
+    ring(148,1,'#0f5f7d',0.4,[2,6],t*0.8,0);
+    ring(128,3,'#37d6ff',0.25+level*0.4,null,t*0.4,8);
+    ring(190+level*12,1,'#37d6ff',0.3,null,t*0.2,48);
+    for(let i=0;i<bars;i++){
+      const a=(i/bars)*Math.PI*2-Math.PI/2;
+      const tb=(active||jarvisSpeaking)?(0.2+Math.random()*level*1.4):0.12+Math.abs(Math.sin(t*2+i*0.3))*0.12;
+      bl[i]+=(tb-bl[i])*0.3;
+      const inner=78,len=14+bl[i]*56;
+      ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*inner,cy+Math.sin(a)*inner);
+      ctx.lineTo(cx+Math.cos(a)*(inner+len),cy+Math.sin(a)*(inner+len));
+      ctx.strokeStyle='rgba(55,214,255,'+(0.4+bl[i]*0.6)+')';ctx.lineWidth=3;ctx.stroke();
+    }
+    // ---- VOLUME RING around the reactor: fills progressively with real volume ----
+    const vr=104;                       // radius of the volume ring
+    const startA=-Math.PI/2;            // start at top (12 o'clock)
+    volShown+=(volPct-volShown)*0.2;
+    const fillA=startA+(volShown/100)*Math.PI*2;
+    // dim background track
+    ctx.beginPath();ctx.arc(cx,cy,vr,0,Math.PI*2);
+    ctx.strokeStyle='rgba(20,70,95,0.45)';ctx.lineWidth=7;ctx.setLineDash([]);ctx.stroke();
+    // bright filled portion (clockwise from top up to volume level)
+    if(volShown>0.5){
+      ctx.beginPath();ctx.arc(cx,cy,vr,startA,fillA,false);
+      const vg=ctx.createLinearGradient(cx-vr,cy,cx+vr,cy);
+      vg.addColorStop(0,'#37d6ff');vg.addColorStop(1,'#9af2ff');
+      ctx.strokeStyle=vg;ctx.lineWidth=7;ctx.lineCap='round';
+      ctx.shadowColor='rgba(55,214,255,0.9)';ctx.shadowBlur=14;
+      ctx.stroke();ctx.shadowBlur=0;ctx.lineCap='butt';
+    }
+    // little glowing tick at the fill head
+    if(volShown>0.5){
+      const hx=cx+Math.cos(fillA)*vr, hy=cy+Math.sin(fillA)*vr;
+      ctx.beginPath();ctx.arc(hx,hy,5,0,Math.PI*2);
+      ctx.fillStyle='#ffffff';ctx.shadowColor='#37d6ff';ctx.shadowBlur=12;ctx.fill();ctx.shadowBlur=0;
+    }
+    const cr=52+level*18;
+    const g=ctx.createRadialGradient(cx,cy,2,cx,cy,cr);
+    g.addColorStop(0,'rgba(180,245,255,'+(0.85+level*0.15)+')');
+    g.addColorStop(0.4,'rgba(55,214,255,0.55)');g.addColorStop(1,'rgba(10,60,90,0)');
+    ctx.beginPath();ctx.arc(cx,cy,cr,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(t*0.6);
+    for(let i=0;i<3;i++){ctx.rotate(Math.PI*2/3);ctx.beginPath();
+      ctx.moveTo(0,-28);ctx.lineTo(20,13);ctx.lineTo(-20,13);ctx.closePath();
+      ctx.strokeStyle='rgba(120,235,255,0.7)';ctx.lineWidth=1.5;ctx.stroke();}
+    ctx.restore();
+    requestAnimationFrame(tick);
+  }
+  tick();
+
+  function pad(n){return String(n).padStart(2,'0');}
+  setInterval(function(){const d=new Date();
+    document.getElementById('clk').textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());},1000);
+
+  // real stats from Python
+  function paintVolume(v){
+    document.getElementById('volnum').textContent=(v<0?'--':v)+'%';
+    volPct=Math.max(0,v);   // drives the glowing ring around the reactor
+  }
+  setInterval(function(){
+    fetch('/stats').then(r=>r.json()).then(d=>{
+      document.getElementById('cpu').textContent=d.cpu+'%';
+      document.getElementById('mem').textContent=d.mem+'%';
+      document.getElementById('pwr').textContent=d.pwr+'%';
+      if(typeof d.vol!=='undefined') paintVolume(d.vol);
+      if(d.reminder){                       // a reminder is due -> announce it
+        document.getElementById('jarvis').textContent='JARVIS: '+d.reminder;
+        speak(d.reminder);
+      }
+    }).catch(()=>{});
+  },400);
+
+  // speak JARVIS reply + animate while speaking
+  let chosenVoice=null;
+  function pickVoice(){
+    const vs=speechSynthesis.getVoices();
+    if(!vs.length) return;
+    // strongly prefer a MALE voice. female voices usually have these names:
+    const female=/zira|hazel|susan|female|samantha|victoria|catherine|linda|heera|sonia|libby|maisie/i;
+    const male=/male|david|mark|george|ryan|guy|james|daniel|arthur|brian|christopher|eric|thomas|william/i;
+    chosenVoice =
+       vs.find(v=>/en-GB/i.test(v.lang)&&male.test(v.name))      // British male first
+    || vs.find(v=>/en/i.test(v.lang)&&male.test(v.name))          // any English male
+    || vs.find(v=>/en/i.test(v.lang)&&!female.test(v.name))       // any English non-female
+    || vs.find(v=>/en/i.test(v.lang))                             // any English
+    || vs[0];
+    console.log('JARVIS voice:', chosenVoice && chosenVoice.name);
+  }
+  if('speechSynthesis' in window){
+    pickVoice();
+    speechSynthesis.onvoiceschanged=pickVoice;  // voices load async in Chrome
+  }
+  function speak(text){
+    document.getElementById('jarvis').textContent='JARVIS: '+text;
+    if(!('speechSynthesis' in window)) return;
+    try{ speechSynthesis.cancel(); }catch(e){}   // clear any stuck utterance
+    speechSynthesis.resume();                     // un-stick Chrome's engine
+    const u=new SpeechSynthesisUtterance(text);
+    u.rate=1.0;u.pitch=0.8;
+    if(chosenVoice)u.voice=chosenVoice;
+    u.onstart=()=>{jarvisSpeaking=true;};
+    u.onend=()=>{jarvisSpeaking=false; if(active){ try{recog.start();}catch(e){} }};
+    u.onerror=()=>{jarvisSpeaking=false;};
+    // small delay helps Chrome reliably speak after cancel()
+    setTimeout(()=>{ speechSynthesis.speak(u); }, 60);
+  }
+  // keep Chrome's speech engine alive (it pauses itself after ~15s idle)
+  setInterval(()=>{ if(speechSynthesis.speaking){ speechSynthesis.pause(); speechSynthesis.resume(); } }, 8000);
+
+  function sendCommand(text){
+    document.getElementById('you').textContent='YOU: '+text;
+    fetch('/command',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:text})})
+      .then(r=>r.json()).then(d=>{ if(d.reply) speak(d.reply); })
+      .catch(()=>{ speak("I lost connection to my systems, sir."); });
+  }
+
+  // speech recognition (browser)
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  let recog=null;
+  if(SR){
+    recog=new SR();recog.continuous=true;recog.interimResults=false;recog.lang='en-US';
+    recog.onresult=function(e){
+      const txt=e.results[e.results.length-1][0].transcript.trim();
+      if(txt) sendCommand(txt);
+    };
+    recog.onend=function(){
+      if(active){ setTimeout(()=>{ try{recog.start();}catch(e){} }, 250); }
+    };
+    recog.onerror=function(ev){
+      if(active && ev.error!=='not-allowed'){ setTimeout(()=>{ try{recog.start();}catch(e){} }, 400); }
+    };
+  }
+
+  // mic level for bar reactivity
+  let stream=null,raf=null;
+  async function startMic(){
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      const ac=new (window.AudioContext||window.webkitAudioContext)();
+      const src=ac.createMediaStreamSource(stream),an=ac.createAnalyser();
+      an.fftSize=128;const data=new Uint8Array(an.frequencyBinCount);src.connect(an);
+      (function read(){an.getByteFrequencyData(data);let s=0;
+        for(let i=0;i<data.length;i++)s+=data[i];
+        level=Math.min(1,(s/data.length)/90);raf=requestAnimationFrame(read);})();
+    }catch(e){}
+  }
+
+  const btn=document.getElementById('mic'),st=document.getElementById('status');
+  btn.addEventListener('click',function(){
+    if(!active){
+      active=true;btn.textContent='■ ACTIVE';st.textContent='● LISTENING';st.style.color='#7CFFB0';
+      startMic(); if(recog){ try{recog.start();}catch(e){} }
+      speak("Good day, sir. JARVIS online and at your service.");
+    }else{
+      active=false;btn.textContent='▶ ENGAGE';st.textContent='● STANDBY';st.style.color='#37d6ff';
+      if(recog) recog.stop();
+      if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+      if(raf)cancelAnimationFrame(raf);
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+env/
+
+# --- IDE ---
+.idea/
+.vscode/
+
+# --- Personal / private data - DO NOT COMMIT ---
+# pywhatkit logs the real phone numbers & messages you sent
+PyWhatKit_DB.txt
+# your private contacts if you split them out
+contacts_private.py
+
+# --- OS ---
+Thumbs.db
+.DS_Store
+
+# --- Screenshots JARVIS saves to your Desktop ---
+screenshot_*.png
