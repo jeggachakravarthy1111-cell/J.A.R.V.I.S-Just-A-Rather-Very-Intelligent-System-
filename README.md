@@ -1,6 +1,6 @@
 ## Demo
 
-   https://github.com/user-attachments/assets/f52edc67-d921-473c-9bd0-559fbb2b16fc
+<video src="https://github.com/user-attachments/assets/f52edc67-d921-473c-9bd0-559fbb2b16fc" controls></video>
 ---
 # J.A.R.V.I.S — Voice-Controlled AI Desktop Assistant
 
