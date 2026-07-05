@@ -1,3 +1,7 @@
+## Demo
+
+   https://github.com/user-attachments/assets/f52edc67-d921-473c-9bd0-559fbb2b16fc
+---
 # J.A.R.V.I.S — Voice-Controlled AI Desktop Assistant
 
 A voice-controlled AI assistant with a holographic Iron Man–style HUD. Speak to it
@@ -13,10 +17,7 @@ globe, and live CPU / memory / battery / volume readouts.
 
 ---
 
-## Demo
 
-   https://github.com/user-attachments/assets/f52edc67-d921-473c-9bd0-559fbb2b16fc
----
 
 ## How it works
 
