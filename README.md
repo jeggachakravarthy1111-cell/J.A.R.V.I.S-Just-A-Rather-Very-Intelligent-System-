@@ -15,8 +15,7 @@ globe, and live CPU / memory / battery / volume readouts.
 
 ## Demo
 
-A full demonstration video is in [`media/JARVIS_DEMONSTRATION_FINAL.mp4`](media/JARVIS_DEMONSTRATION_FINAL.mp4).
-
+   https://github.com/user-attachments/assets/571b6413-49fa-4329-b633-ad25fece6179
 ---
 
 ## How it works
