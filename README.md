@@ -15,7 +15,7 @@ globe, and live CPU / memory / battery / volume readouts.
 
 ## Demo
 
-   https://github.com/user-attachments/assets/571b6413-49fa-4329-b633-ad25fece6179
+   https://github.com/user-attachments/assets/f52edc67-d921-473c-9bd0-559fbb2b16fc
 ---
 
 ## How it works
